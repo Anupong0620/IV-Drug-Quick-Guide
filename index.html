@@ -40,6 +40,7 @@
     .qr-box{border:1px dashed var(--border);border-radius:12px;padding:8px;background:#fff}
     .qr-info{font-size:13px;color:var(--muted)}
     .pill{display:inline-block;padding:.1rem .5rem;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;border:1px solid #e0e7ff}
+    .empty{color:var(--muted);text-align:center;margin:24px 0}
     @media print{ header,.actions{display:none} body{background:#fff} a{word-break:break-all} }
     footer{color:var(--muted);font-size:12px;margin:16px 0 24px;text-align:center}
   </style>
@@ -53,62 +54,168 @@
       </div>
     </header>
 
-    <div id="list"></div>
+    <div id="list" role="region" aria-live="polite"></div>
     <footer>โฮสต์ด้วย GitHub Pages • อัปเดตล่าสุด: 19 ส.ค. 2568</footer>
   </main>
 
   <script>
-    // ===== 1) กรอกข้อมูลยาได้หลายตัว (ตัวอย่างมี Acyclovir 1 รายการ) =====
-    // เติมได้ถึง 20+ ตัวตามต้องการ
-    const DRUGS = [
-      {
-        id: 'acyclovir',
-        name: 'Acyclovir',
-        strength: '250 mg/10 mL',
-        routeBadge: 'IV infusion',
-        diluents: ['D5W','D5S/2','D5S/4','D5S','NSS','RINGER'],
-        prepHtml: 'เจือจางด้วยสารละลายที่ใช้ได้ข้างต้น โดย<strong>ความเข้มข้นของยาไม่ควรเกิน 5 mg/mL</strong> เพื่อป้องกันการเกิด phlebitis',
-        avoidHtml: 'หลีกเลี่ยงการให้แบบดันเข้าหลอดเลือด (IV push/bolus)',
-        admin: { route: 'IV infusion', duration: '&gt; 60 นาที', maxConc: 'ไม่เกิน 5 mg/mL' },
-        cautions: [
-          '<span class="warn">หลังเปิดใช้</span> ยาส่วนที่เหลือให้ทิ้ง',
-          '<span class="warn">หลังเจือจาง</span> ยามีความคงตัว <strong>24 ชั่วโมง</strong>'
-        ],
-        updated: '19 ส.ค. 2568'
-      },
+  window.addEventListener('DOMContentLoaded', function(){
+    try{
+      // ===== 1) ข้อมูลตัวอย่าง =====
+      const DRUGS = [
+        {
+          id: 'acyclovir',
+          name: 'Acyclovir',
+          strength: '250 mg/10 mL',
+          routeBadge: 'IV infusion',
+          diluents: ['D5W','D5S/2','D5S/4','D5S','NSS','RINGER'],
+          prepHtml: 'เจือจางด้วยสารละลายที่ใช้ได้ข้างต้น โดย<strong>ความเข้มข้นของยาไม่ควรเกิน 5 mg/mL</strong> เพื่อป้องกันการเกิด phlebitis',
+          avoidHtml: 'หลีกเลี่ยงการให้แบบดันเข้าหลอดเลือด (IV push/bolus)',
+          admin: { route: 'IV infusion', duration: '&gt; 60 นาที', maxConc: 'ไม่เกิน 5 mg/mL' },
+          cautions: [
+            '<span class="warn">หลังเปิดใช้</span> ยาส่วนที่เหลือให้ทิ้ง',
+            '<span class="warn">หลังเจือจาง</span> ยามีความคงตัว <strong>24 ชั่วโมง</strong>'
+          ],
+          updated: '19 ส.ค. 2568'
+        }
+      ];
 
-      // ==== ตัวอย่างโครงสำหรับยาอื่น ๆ (คัดลอกแล้วแก้ไข) ====
-      // {
-      //   id: 'amikacin',
-      //   name: 'Amikacin',
-      //   strength: '500 mg/2 mL',
-      //   routeBadge: 'IV infusion',
-      //   diluents: ['NSS','D5W'],
-      //   prepHtml: 'ตัวอย่าง: เจือจางให้ความเข้มข้น ... mg/mL',
-      //   avoidHtml: 'ตัวอย่าง: ห้าม IV push',
-      //   admin: { route: 'IV infusion', duration: '30–60 นาที', maxConc: '… mg/mL' },
-      //   cautions: [
-      //     'ตัวอย่าง: เฝ้าระวัง ototoxicity/nephrotoxicity',
-      //     'เก็บรักษาตามคำแนะนำ'
-      //   ],
-      //   updated: '19 ส.ค. 2568'
-      // },
-    ];
+      const list = document.getElementById('list');
 
-    // ===== 2) ยูทิลสร้าง URL ของการ์ด (ใช้กับ QR) =====
-    function cardUrlFor(id){
-      const u = new URL(window.location.href);
-      u.hash = id;
-      return u.toString();
+      function cardUrlFor(id){
+        const u = new URL(window.location.href);
+        u.hash = id;
+        return u.toString();
+      }
+      function makeQrSrc(url, size=200){
+        const base = 'https://chart.googleapis.com/chart';
+        const params = new URLSearchParams({ cht:'qr', chs:`${size}x${size}`, chld:'M|0', chl:url });
+        return `${base}?${params.toString()}`;
+      }
+
+      function render(drugs){
+        list.innerHTML = '';
+        if(!drugs || drugs.length === 0){
+          list.innerHTML = '<div class="empty">ไม่พบรายการที่ตรงกับคำค้น</div>';
+          return;
+        }
+        for(const d of drugs){
+          const art = document.createElement('article');
+          art.className = 'card';
+          art.id = d.id;
+          art.innerHTML = `
+            <div class="title">
+              <h2>${d.name} ${d.strength}</h2>
+              <span class="badge">${d.routeBadge || 'IV'}</span>
+            </div>
+            <p class="sub">ข้อมูลสรุปการเตรียมและการให้ยา (สำหรับบุคลากรทางการแพทย์)</p>
+
+            <div class="grid">
+              <section class="section">
+                <h3>ตัวทำละลายที่ใช้ได้</h3>
+                <div class="chips">${(d.diluents||[]).map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+                <h3>วิธีเตรียม</h3>
+                <p>${d.prepHtml||''}</p>
+                ${d.avoidHtml ? `<div class="note"><strong>หมายเหตุ:</strong> ${d.avoidHtml}</div>`:''}
+              </section>
+
+              <section class="section">
+                <h3>การให้ยา</h3>
+                <dl class="kv">
+                  <dt>เส้นทางให้ยา</dt><dd>${d.admin && d.admin.route ? d.admin.route : ''}</dd>
+                  <dt>ระยะเวลาให้</dt><dd>${d.admin && d.admin.duration ? d.admin.duration : ''}</dd>
+                  <dt>ความเข้มข้นสูงสุด</dt><dd>${d.admin && d.admin.maxConc ? d.admin.maxConc : ''}</dd>
+                </dl>
+                <h3>ข้อควรระวัง / อื่น ๆ</h3>
+                <ul>${(d.cautions||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
+              </section>
+            </div>
+
+            <div class="actions">
+              <button class="btn btn-qr" data-id="${d.id}">แสดง/ซ่อน QR</button>
+              <button class="btn btn-print">พิมพ์/บันทึกเป็น PDF</button>
+              <a class="btn btn-dl" href="#" download="${d.id}-qr.png" style="display:none">ดาวน์โหลด QR</a>
+              <a class="btn" href="${cardUrlFor(d.id)}" target="_blank" rel="noopener">เปิดลิงก์การ์ด</a>
+            </div>
+
+            <div class="qr-wrap">
+              <div class="qr-box"><img width="180" height="180" alt="QR code สำหรับเปิดการ์ด ${d.name}" /></div>
+              <div class="qr-info">
+                สแกนเพื่อเปิด: <br>
+                <a href="${cardUrlFor(d.id)}" target="_blank" rel="noopener">${cardUrlFor(d.id)}</a>
+              </div>
+            </div>
+
+            <p class="foot">
+              <span>เอกสารฉบับย่อสำหรับใช้งานภายใน</span>
+              <span>อัปเดตล่าสุด: ${d.updated||''}</span>
+            </p>
+          `;
+          list.appendChild(art);
+        }
+
+        // bind events
+        list.querySelectorAll('.card').forEach(card=>{
+          const btnQR   = card.querySelector('.btn-qr');
+          const btnPrn  = card.querySelector('.btn-print');
+          const btnDL   = card.querySelector('.btn-dl');
+          const wrap    = card.querySelector('.qr-wrap');
+          const img     = card.querySelector('img');
+          const id      = btnQR ? btnQR.getAttribute('data-id') : '';
+
+          if(btnQR){
+            btnQR.addEventListener('click', ()=>{
+              wrap.classList.toggle('show');
+              if(wrap.classList.contains('show') && !img.src){
+                const url = cardUrlFor(id);
+                img.src = makeQrSrc(url, 200);
+                btnDL.style.display = 'inline-block';
+                btnDL.href = img.src;
+              }
+            });
+          }
+          if(btnPrn){ btnPrn.addEventListener('click', ()=>window.print()); }
+        });
+      }
+
+      // --- ค้นหา ---
+      const q = document.getElementById('q');
+      function applySearch(){
+        const kw = (q.value || '').trim().toLowerCase();
+        if(!kw){ render(DRUGS); return; }
+        const filtered = DRUGS.filter(d=>{
+          const blob = [
+            d.name, d.strength, d.routeBadge,
+            ...(d.diluents||[]), d.prepHtml, d.avoidHtml,
+            d.admin && d.admin.route, d.admin && d.admin.duration, d.admin && d.admin.maxConc,
+            ...(d.cautions||[])
+          ].join(' ').toLowerCase();
+          return blob.includes(kw);
+        });
+        render(filtered);
+      }
+      q.addEventListener('input', applySearch);
+
+      // --- เริ่มต้น: ถ้ามีพารามิเตอร์ ?q= หรือมีค่าในช่องค้นหา ให้กรองทันที ---
+      const urlParams = new URLSearchParams(window.location.search);
+      const qParam = urlParams.get('q');
+      if(qParam){ q.value = qParam; }
+      render(DRUGS);        // แสดงทั้งหมดก่อน
+      applySearch();        // แล้วกรองตามค่าที่มี (ถ้ามี)
+
+      // --- ถ้ามี hash ให้เลื่อนไป ---
+      if(location.hash){
+        const el = document.querySelector(location.hash);
+        if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); }
+      }
+    }catch(err){
+      console.error(err);
+      const list = document.getElementById('list');
+      if(list){
+        list.innerHTML = '<div class="empty">เกิดข้อผิดพลาดในการโหลดหน้า ลองรีเฟรชอีกครั้ง</div>';
+      }
     }
-
-    // ใช้ Google Chart API สร้างรูป QR (เรียบง่ายและโหลดไวบน GitHub Pages)
-    function makeQrSrc(url, size=200){
-      const base = 'https://chart.googleapis.com/chart';
-      const params = new URLSearchParams({ cht:'qr', chs:`${size}x${size}`, chld:'M|0', chl:url });
-      return `${base}?${params.toString()}`;
-    }
-
-    // ===== 3) เรนเดอร์การ์ด =====
-    const list = document.getElementById('list');
-    function render(drug
+  });
+  </script>
+</body>
+</html>
