@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IV Drug Quick Guide + QR</title>
+  <style>
+    :root{
+      --bg:#f7f7fb;--card:#ffffff;--text:#1f2937;--muted:#6b7280;--accent:#3b82f6;
+      --chip:#e5e7eb;--border:#e5e7eb;--warn:#f59e0b;--danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,"Noto Sans Thai",Tahoma,sans-serif}
+    .wrap{max-width:980px;margin:28px auto;padding:0 16px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+    h1{font-size:22px;margin:0}
+    .search{flex:1;min-width:260px}
+    .search input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.05);padding:20px;margin-bottom:18px}
+    .title{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 6px}
+    .title h2{font-size:18px;line-height:1.25;margin:0}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--accent);color:#fff}
+    .sub{color:var(--muted);margin:0 0 12px}
+    .grid{display:grid;gap:14px}
+    @media (min-width:720px){ .grid{grid-template-columns:1.2fr .8fr} }
+    .section{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fff}
+    .section h3{font-size:15px;margin:0 0 8px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{background:var(--chip);border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:13px}
+    .kv{margin:0;display:grid;grid-template-columns:160px 1fr;gap:6px 10px}
+    .kv dt{color:var(--muted)} .kv dd{margin:0}
+    .note{border-left:4px solid var(--warn);background:#fff7ed;padding:10px 12px;border-radius:8px}
+    .warn{color:var(--danger);font-weight:600}
+    .foot{margin-top:12px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+    .btn:hover{border-color:#cbd5e1}
+    .qr-wrap{display:none;align-items:center;gap:14px;margin-top:10px}
+    .qr-wrap.show{display:flex}
+    .qr-box{border:1px dashed var(--border);border-radius:12px;padding:8px;background:#fff}
+    .qr-info{font-size:13px;color:var(--muted)}
+    .pill{display:inline-block;padding:.1rem .5rem;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;border:1px solid #e0e7ff}
+    @media print{ header,.actions{display:none} body{background:#fff} a{word-break:break-all} }
+    footer{color:var(--muted);font-size:12px;margin:16px 0 24px;text-align:center}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>IV Drug Quick Guide</h1>
+      <div class="search">
+        <input id="q" placeholder="ค้นหาชื่อยา / ตัวทำละลาย / คีย์เวิร์ด…" />
+      </div>
+    </header>
+
+    <div id="list"></div>
+    <footer>โฮสต์ด้วย GitHub Pages • อัปเดตล่าสุด: 19 ส.ค. 2568</footer>
+  </main>
+
+  <script>
+    // ===== 1) กรอกข้อมูลยาได้หลายตัว (ตัวอย่างมี Acyclovir 1 รายการ) =====
+    // เติมได้ถึง 20+ ตัวตามต้องการ
+    const DRUGS = [
+      {
+        id: 'acyclovir',
+        name: 'Acyclovir',
+        strength: '250 mg/10 mL',
+        routeBadge: 'IV infusion',
+        diluents: ['D5W','D5S/2','D5S/4','D5S','NSS','RINGER'],
+        prepHtml: 'เจือจางด้วยสารละลายที่ใช้ได้ข้างต้น โดย<strong>ความเข้มข้นของยาไม่ควรเกิน 5 mg/mL</strong> เพื่อป้องกันการเกิด phlebitis',
+        avoidHtml: 'หลีกเลี่ยงการให้แบบดันเข้าหลอดเลือด (IV push/bolus)',
+        admin: { route: 'IV infusion', duration: '&gt; 60 นาที', maxConc: 'ไม่เกิน 5 mg/mL' },
+        cautions: [
+          '<span class="warn">หลังเปิดใช้</span> ยาส่วนที่เหลือให้ทิ้ง',
+          '<span class="warn">หลังเจือจาง</span> ยามีความคงตัว <strong>24 ชั่วโมง</strong>'
+        ],
+        updated: '19 ส.ค. 2568'
+      },
+
+      // ==== ตัวอย่างโครงสำหรับยาอื่น ๆ (คัดลอกแล้วแก้ไข) ====
+      // {
+      //   id: 'amikacin',
+      //   name: 'Amikacin',
+      //   strength: '500 mg/2 mL',
+      //   routeBadge: 'IV infusion',
+      //   diluents: ['NSS','D5W'],
+      //   prepHtml: 'ตัวอย่าง: เจือจางให้ความเข้มข้น ... mg/mL',
+      //   avoidHtml: 'ตัวอย่าง: ห้าม IV push',
+      //   admin: { route: 'IV infusion', duration: '30–60 นาที', maxConc: '… mg/mL' },
+      //   cautions: [
+      //     'ตัวอย่าง: เฝ้าระวัง ototoxicity/nephrotoxicity',
+      //     'เก็บรักษาตามคำแนะนำ'
+      //   ],
+      //   updated: '19 ส.ค. 2568'
+      // },
+    ];
+
+    // ===== 2) ยูทิลสร้าง URL ของการ์ด (ใช้กับ QR) =====
+    function cardUrlFor(id){
+      const u = new URL(window.location.href);
+      u.hash = id;
+      return u.toString();
+    }
+
+    // ใช้ Google Chart API สร้างรูป QR (เรียบง่ายและโหลดไวบน GitHub Pages)
+    function makeQrSrc(url, size=200){
+      const base = 'https://chart.googleapis.com/chart';
+      const params = new URLSearchParams({ cht:'qr', chs:`${size}x${size}`, chld:'M|0', chl:url });
+      return `${base}?${params.toString()}`;
+    }
+
+    // ===== 3) เรนเดอร์การ์ด =====
+    const list = document.getElementById('list');
+    function render(drug
