@@ -71,70 +71,587 @@
 <script>
 (function(){
   // ===== 1) ข้อมูลยา =====
-  const DRUGS = [
-    {
-      id: 'acyclovir',
-      name: 'Acyclovir',
-      strength: '250 mg/10 mL',
-      routeBadge: 'IV infusion',
-      diluents: ['D5W','D5S/2','D5S/4','D5S','NSS','RINGER'],
-      prepHtml: 'เจือจางด้วยสารละลายที่ใช้ได้ข้างต้น โดย<strong>ความเข้มข้นของยาไม่ควรเกิน 5 mg/mL</strong> เพื่อป้องกันการเกิด phlebitis',
-      avoidHtml: 'หลีกเลี่ยงการให้แบบดันเข้าหลอดเลือด (IV push/bolus)',
-      admin: { route: 'IV infusion', duration: '&gt; 60 นาที', maxConc: 'ไม่เกิน 5 mg/mL' },
-      renalDose: {
-        title: 'การปรับขนาดยาตามการทำงานของไต (Renal Dose Adjustment)',
-        headers: ['Creatinine Clearance (CrCl)', 'การปรับขนาดยา / ความถี่'],
-        adjustments: [
-            ['> 50 mL/min', 'ให้ขนาดยาปกติ ทุก 8 ชั่วโมง'],
-            ['25–50 mL/min', 'ให้ขนาดยาปกติ ทุก 12 ชั่วโมง'],
-            ['10–25 mL/min', 'ให้ขนาดยาปกติ ทุก 24 ชั่วโมง'],
-            ['< 10 mL/min', 'ให้ขนาดยา <b>ครึ่งหนึ่ง (50%)</b> ของขนาดยาปกติ ทุก 24 ชั่วโมง'],
-            ['ผู้ป่วยฟอกไต (Hemodialysis)', 'ให้ยาหลังฟอกไตเสร็จ (Post-HD)']
-        ],
-        disclaimer: '**ข้อควรระวัง:** ข้อมูลนี้เป็นเพียงแนวทางเบื้องต้น โปรดใช้คู่กับแนวทางของสถาบันและพิจารณาตามสภาวะของผู้ป่วยแต่ละราย'
-      },
-      cautions: [
-        '<span class="warn">หลังเปิดใช้</span> ยาส่วนที่เหลือให้ทิ้ง',
-        '<span class="warn">หลังเจือจาง</span> ยามีความคงตัว <strong>24 ชั่วโมง</strong>'
+// ===== ข้อมูลยา (พร้อม Renal Dose มาตรฐาน) =====
+const DRUGS = [
+  // 1) Acyclovir
+  {
+    id: 'acyclovir',
+    name: 'Acyclovir',
+    strength: '250 mg/10 mL',
+    routeBadge: 'IV infusion',
+    diluents: ['D5W','D5S/2','D5S/4','D5S','NSS','RINGER'],
+    prepHtml: 'เจือจางด้วยสารละลายที่ใช้ได้ โดย<strong>ความเข้มข้นไม่เกิน 5 mg/mL</strong> เพื่อลด phlebitis',
+    avoidHtml: 'หลีกเลี่ยง IV push/bolus',
+    admin: { route: 'IV infusion', duration: '&gt; 60 นาที', maxConc: '≤ 5 mg/mL' },
+    cautions: [
+      'หลังเปิดใช้ยาส่วนที่เหลือให้ทิ้ง',
+      'หลังเจือจางคงตัว <strong>24 ชั่วโมง</strong>'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามการทำงานของไต (Renal Dose Adjustment)',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 50', 'ขนาดปกติ ทุก 8 ชม.'],
+        ['25–50', 'ขนาดปกติ ทุก 12 ชม.'],
+        ['10–25', 'ขนาดปกติ ทุก 24 ชม.'],
+        ['< 10', 'ให้ <b>50%</b> ของขนาดปกติ ทุก 24 ชม.'],
+        ['Hemodialysis', 'ให้หลังฟอกไต (Post‑HD)']
       ],
-      updated: '19 ส.ค. 2568'
+      disclaimer: '**ข้อควรระวัง:** ใช้คู่กับแนวทางสถาบันและภาวะผู้ป่วยจริง'
     },
+    updated: '19 ส.ค. 2568'
+  },
 
-    /* ===== ตัวที่ 2: Amoxicillin + Clavulanic ===== */
-    {
-      id: 'amoxiclav-1g-200mg',
-      name: 'Amoxicillin + Clavulanic acid',
-      strength: '1 g + 200 mg (IV)',
-      routeBadge: 'IV direct / infusion',
-      diluents: ['NSS','Sterile water (SWI)','Ringer'],
-      prepHtml:
-        '<strong>IV direct:</strong> ละลายผงยาด้วยน้ำกลั่นสำหรับฉีด (SWI) 20 mL ก่อนให้ทางหลอดเลือดดำแบบช้า<br>' +
-        '<strong>IV infusion:</strong> หลังละลายแล้วเจือจางต่อด้วย NSS หรือ SWI ให้มีปริมาตรสุดท้าย 100 mL',
-      avoidHtml: '',
-      admin: {
-        route: 'IV direct หรือ IV infusion',
-        duration: 'IV direct: 3–4 นาที • IV infusion: 30–40 นาที',
-        maxConc: 'ตามมาตรฐานหลังละลาย/เจือจาง'
-      },
-      cautions: [
-        'หลังละลายควรใช้ภายใน <strong>20 นาที</strong>',
-        'หลังเจือจางด้วย NSS หรือ SWI ควรใช้ภายใน <strong>4 ชั่วโมง</strong> ที่อุณหภูมิห้อง หรือ <strong>8 ชั่วโมง</strong> หากเก็บในตู้เย็น',
-        'หากเจือจางด้วย Ringer ควรใช้ภายใน <strong>3 ชั่วโมง</strong> ที่อุณหภูมิห้อง'
+  // 2) Amoxicillin + Clavulanic acid (IV)
+  {
+    id: 'amoxiclav-1g-200mg',
+    name: 'Amoxicillin + Clavulanic acid',
+    strength: '1 g + 200 mg (IV)',
+    routeBadge: 'IV direct / infusion',
+    diluents: ['NSS','Sterile water (SWI)','Ringer'],
+    prepHtml:
+      '<strong>IV direct:</strong> ละลายด้วย SWI 20 mL<br>' +
+      '<strong>IV infusion:</strong> หลังละลายแล้วเจือจางต่อด้วย NSS หรือ SWI ให้มีปริมาตรสุดท้าย 100 mL',
+    avoidHtml: '',
+    admin: {
+      route: 'IV direct หรือ IV infusion',
+      duration: 'IV direct: 3–4 นาที • IV infusion: 30–40 นาที',
+      maxConc: ''
+    },
+    cautions: [
+      'หลังละลายใช้ภายใน <strong>20 นาที</strong>',
+      'หลังเจือจางด้วย NSS/SWI ใช้ภายใน <strong>4 ชม.</strong> ที่ห้อง หรือ <strong>8 ชม.</strong> ในตู้เย็น',
+      'ถ้าเจือจางด้วย Ringer ใช้ภายใน <strong>3 ชม.</strong> ที่ห้อง'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่ (ตัวอย่าง 1.2 g = 1 g + 0.2 g)'],
+      adjustments: [
+        ['> 30', '1.2 g IV ทุก 8 ชม.'],
+        ['10–30', '1.2 g IV ทุก 12 ชม.'],
+        ['< 10', '1.2 g IV ทุก 24 ชม.'],
+        ['Hemodialysis', '1.2 g ทุก 24 ชม. และให้ <b>1 dose เสริม</b>หลังฟอกไต']
       ],
-      renalDose: {
-        title: 'การปรับขนาดยาตามการทำงานของไต (Renal Dose Adjustment)',
-        headers: ['Creatinine Clearance (CrCl)', 'การปรับขนาดยา / ความถี่ (ตัวอย่าง 1.2 g = 1 g + 0.2 g)'],
-        adjustments: [
-          ['> 30 mL/min', 'ให้ขนาดยาปกติ เช่น 1.2 g ทุก 8 ชั่วโมง'],
-          ['10–30 mL/min', '1.2 g ทุก 12 ชั่วโมง'],
-          ['< 10 mL/min', '1.2 g ทุก 24 ชั่วโมง'],
-          ['ผู้ป่วยฟอกไต (Hemodialysis)', '1.2 g ทุก 24 ชั่วโมง และพิจารณาให้ <b>1 dose เสริมหลังฟอกไต</b> (Post-HD)']
-        ],
-        disclaimer: '**หมายเหตุ:** เป็นแนวทางทั่วไปสำหรับผู้ใหญ่ โปรดปรับตามข้อบ่งใช้ ความรุนแรงของการติดเชื้อ และแนวทางของสถาบัน'
-      },
-      updated: '19 ส.ค. 2568'
-    }
-  ];
+      disclaimer: '**หมายเหตุ:** ปรับตามข้อบ่งใช้/ความรุนแรงและแนวทางสถาบัน'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 3) Amphotericin B
+  {
+    id: 'amphotericin-b-50mg',
+    name: 'Amphotericin B',
+    strength: '50 mg',
+    routeBadge: 'IV infusion',
+    diluents: ['D5W เท่านั้น'],
+    prepHtml: 'ละลาย 50 mg ด้วย SWI 10 mL (ได้ 5 mg/mL) แล้วเจือจางด้วย D5W 500 mL',
+    avoidHtml: 'ห้ามผสมใน NSS หรือ Ringer lactate',
+    admin: { route: 'IV infusion', duration: '2–6 ชั่วโมง', maxConc: '' },
+    cautions: [
+      'หลังละลายคงตัว 24 ชม. ที่ห้อง หรือ 1 สัปดาห์ในตู้เย็น'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [['ทุกราย', 'โดยทั่วไป <b>ไม่ต้องปรับตามไต</b>; เฝ้าระวัง nephrotoxicity และอิเล็กโทรไลต์']],
+      disclaimer: '**หมายเหตุ:** ยามีพิษต่อไต ควรติดตาม Scr/CrCl และ K+, Mg+'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 4) Amikacin
+  {
+    id: 'amikacin-500mg-2ml',
+    name: 'Amikacin',
+    strength: '500 mg/2 mL',
+    routeBadge: 'IM / Intermittent IV',
+    diluents: ['D5W','D10W','NSS','D5S','D5S/2','RINGER'],
+    prepHtml: 'เจือจางให้ได้ <b>5%</b> เช่น 500 mg ในสารละลาย 100 mL',
+    avoidHtml: '<b>ห้าม IV push</b>',
+    admin: { route: 'IV infusion', duration: '30–60 นาที (ทารก 1–12 เดือน: &gt; 60 นาที)', maxConc: '' },
+    cautions: ['คงตัว 24 ชม. ที่อุณหภูมิห้อง'],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่ (ผู้ใหญ่)'],
+      adjustments: [
+        ['> 60', '15 mg/kg/day IV หาร 2–3 ครั้ง'],
+        ['40–60', 'ให้ทุก 24 ชม.'],
+        ['20–39', 'ให้ทุก 48 ชม.'],
+        ['< 20', 'ให้ทุก 72 ชม.'],
+        ['Hemodialysis', 'ให้ loading dose แล้ว 5–7.5 mg/kg <b>หลังฟอกไต</b>']
+      ],
+      disclaimer: '**สำคัญ:** ต้อง monitor ระดับยา (peak/trough) และการได้ยิน/การทำงานของไต'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 5) Ampicillin (Ampicillin GPO®)
+  {
+    id: 'ampicillin-1g',
+    name: 'Ampicillin (Ampicillin GPO®)',
+    strength: '1 g',
+    routeBadge: 'IM / Direct IV / IV infusion',
+    diluents: ['D5W','D5S/2','NSS','Ringer'],
+    prepHtml: '<b>IM:</b> 1 g + SWI 5 mL • <b>Direct IV:</b> 1 g + SWI 7.4 mL • <b>Infusion:</b> เจือจาง ≥ 50 mL',
+    avoidHtml: '',
+    admin: { route: 'IM / Direct IV / IV infusion', duration: 'IM 3–5 นาที • IV direct ≥ 3–5 นาที (ถ้า ≥500 mg: 10–15 นาที) • IV infusion &gt; 30 นาที', maxConc: '' },
+    cautions: ['หลังเจือจางคงตัว 2 ชม. ในตู้เย็น'],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่ (แนวทางทั่วไป)'],
+      adjustments: [
+        ['> 50', 'ให้ตามปกติ (เช่น q6h)'],
+        ['10–50', 'ยืดช่วงเป็น q6–12h ตามความรุนแรง'],
+        ['< 10', 'ยืดช่วงเป็น q12–24h'],
+        ['Hemodialysis', 'ให้ขนาดตามแผน และ <b>เสริมหลังฟอกไต</b>']
+      ],
+      disclaimer: '**หมายเหตุ:** ปรับตามข้อบ่งใช้และแนวทางสถาบัน'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 6) Cefazolin
+  {
+    id: 'cefazolin-1g',
+    name: 'Cefazolin',
+    strength: '1 g',
+    routeBadge: 'IM / Direct IV / IV infusion',
+    diluents: ['NSS','D5W'],
+    prepHtml: '<b>IM:</b> 1 g + SWI 2.5 mL • <b>Direct IV:</b> 1 g + SWI 4 mL • <b>Infusion:</b> ละลายด้วย SWI 4 mL แล้วเจือจาง ≥ 50–100 mL',
+    avoidHtml: 'ห้ามผสมรวมกับ amikacin',
+    admin: { route: 'IM / Direct IV / IV infusion', duration: 'Direct IV 3–5 นาที • Infusion 30–60 นาที', maxConc: '' },
+    cautions: [
+      'Direct IV: คงตัว 24 ชม. ที่ห้อง/10 วันในตู้เย็น',
+      'Infusion: คงตัว 24 ชม. ที่ห้อง/4 วันในตู้เย็น'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['≥ 55', 'ขนาดปกติ ทุก 8 ชม.'],
+        ['35–54', 'ให้ทุก 8–12 ชม.'],
+        ['11–34', 'ให้ทุก 12 ชม.'],
+        ['≤ 10', 'ให้ทุก 24 ชม.'],
+        ['Hemodialysis', 'ให้ขนาดปกติแล้ว <b>เสริมหลังฟอกไต</b>']
+      ],
+      disclaimer: '**หมายเหตุ:** ตัวอย่างสำหรับการติดเชื้อทั่วไป ปรับตามข้อบ่งใช้จริง'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 7) Cefotaxime
+  {
+    id: 'cefotaxime-1g',
+    name: 'Cefotaxime',
+    strength: '1 g',
+    routeBadge: 'IM / Direct IV / IV infusion',
+    diluents: ['D5W','NSS','SWI'],
+    prepHtml: '<b>IM:</b> 1–2 g + SWI 3–5 mL • <b>Direct IV:</b> 1–2 g + SWI 10 mL • <b>Infusion:</b> เจือจาง ≥ 50–100 mL',
+    avoidHtml: '',
+    admin: { route: 'IM / Direct IV / IV infusion', duration: 'Direct IV &gt; 3–5 นาที • Infusion &gt; 30 นาที', maxConc: '' },
+    cautions: ['หลังละลาย/เจือจาง คงตัว 12 ชม. ที่ห้อง และ 24 ชม. ในตู้เย็น'],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 50', 'ให้ตามปกติ (เช่น 1–2 g q8h)'],
+        ['10–50', 'ลดขนาด 50% หรือยืดช่วงเป็น q12h'],
+        ['< 10', 'ให้ q24h (หรือครึ่งขนาด q12–24h)'],
+        ['Hemodialysis', 'ให้หลังฟอกไตตามความจำเป็น']
+      ],
+      disclaimer: '**หมายเหตุ:** ปรับตามข้อบ่งใช้จริง'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 8) Ceftazidime
+  {
+    id: 'ceftazidime-1g',
+    name: 'Ceftazidime',
+    strength: '1 g',
+    routeBadge: 'IM / Direct IV / IV infusion',
+    diluents: ['NSS','D5W','D5S','SWI'],
+    prepHtml: '<b>IM:</b> 1 g + SWI 3 mL + 0.5–1% lidocaine • <b>Direct IV:</b> 1 g + SWI 10 mL • <b>Infusion:</b> เจือจาง ≥ 50–100 mL',
+    avoidHtml: '',
+    admin: { route: 'IM / Direct IV / IV infusion', duration: 'Direct IV &gt; 3–5 นาที • Infusion &gt; 15–30 นาที', maxConc: '' },
+    cautions: ['หลังละลายคงตัว 24 ชม. ที่ห้อง หรือ 7 วันในตู้เย็น'],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'ความถี่ตัวอย่าง (เช่นเป้าหมาย 1 g)'],
+      adjustments: [
+        ['> 50', 'q8h'],
+        ['31–50', 'q12h'],
+        ['16–30', 'q24h'],
+        ['6–15', 'q48h'],
+        ['≤ 5', 'q48–72h'],
+        ['Hemodialysis', 'ขนาดตามแพทย์และ<b>เสริมหลังฟอกไต</b>']
+      ],
+      disclaimer: '**หมายเหตุ:** ปรับตามข้อบ่งใช้/ระดับความรุนแรง'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 9) Ceftriaxone
+  {
+    id: 'ceftriaxone-1g',
+    name: 'Ceftriaxone',
+    strength: '1 g',
+    routeBadge: 'IM / Direct IV / IV infusion',
+    diluents: ['NSS','D5W','D5S','SWI'],
+    prepHtml: '<b>IM:</b> 1 g + 3.5 mL ของ 1% lidocaine • <b>Direct IV:</b> 1 g + SWI 10 mL • <b>Infusion:</b> เจือจาง ≥ 50–100 mL',
+    avoidHtml: '',
+    admin: { route: 'IM / Direct IV / IV infusion', duration: 'Direct IV &gt; 3–5 นาที • Infusion ≥ 30 นาที', maxConc: '' },
+    cautions: [
+      'หลังละลายคงตัว 6 ชม. ที่ห้อง',
+      'หลังเจือจางคงตัว 24 ชม. ที่ห้อง หรือ 7 วันในตู้เย็น'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 30 mL/min', 'ไม่ต้องปรับ'],
+        ['< 30 mL/min', 'โดยทั่วไปไม่ต้องปรับ แต่หากร่วมกับตับบกพร่อง → สูงสุด 2 g/วัน']
+      ],
+      disclaimer: '**หมายเหตุ:** ส่วนใหญ่ขับออกทางน้ำดี'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 10) Ciprofloxacin
+  {
+    id: 'ciprofloxacin-400-200',
+    name: 'Ciprofloxacin',
+    strength: '400 mg/200 mL',
+    routeBadge: 'IV infusion',
+    diluents: ['พร้อมใช้ หรือเจือจางเป็น 1 mg/mL'],
+    prepHtml: 'ไม่ต้องเจือจาง หรือเจือจางให้มีความเข้มข้น 1 mg/mL',
+    avoidHtml: '<b>ห้าม Direct IV</b>',
+    admin: { route: 'IV infusion', duration: '&ge; 60 นาที', maxConc: '' },
+    cautions: ['ห้ามเก็บในตู้เย็น; เก็บอุณหภูมิห้อง ป้องกันแสง'],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 50', 'ขนาดปกติ เช่น 400 mg q12h'],
+        ['30–50', '400 mg q12–18h'],
+        ['< 30', '400 mg q18–24h'],
+        ['Hemodialysis', 'ให้หลังฟอกไตตามความจำเป็น']
+      ],
+      disclaimer: '**หมายเหตุ:** ปรับตามความรุนแรง/ตำแหน่งติดเชื้อ'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 11) Clindamycin
+  {
+    id: 'clindamycin',
+    name: 'Clindamycin',
+    strength: '300–1200 mg',
+    routeBadge: 'IV infusion',
+    diluents: ['D5W','D10W','D5NS','NSS'],
+    prepHtml: 'IM ไม่เกิน 600 mg; ความเข้มข้น infusion ≤ 18 mg/mL; 300–600 mg ใช้ ≥ 50 mL; ≥ 900 mg ใช้ 50–100 mL',
+    avoidHtml: '',
+    admin: { route: 'IV infusion', duration: '300–600 mg: 10–20 นาที • 900 mg: &gt; 30 นาที • 1200 mg: ≥ 60 นาที', maxConc: '≤ 18 mg/mL' },
+    cautions: ['หลังเจือจางคงตัว 72 ชม. ที่ 2–8°C'],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [['ทุกราย', 'โดยทั่วไป <b>ไม่ต้องปรับ</b>']],
+      disclaimer: ''
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 12) Cloxacillin
+  {
+    id: 'cloxacillin-1g',
+    name: 'Cloxacillin',
+    strength: '1 g',
+    routeBadge: 'IM / Direct IV / IV infusion',
+    diluents: ['NSS'],
+    prepHtml: '<b>IM:</b> 250 mg + SWI 1.5 mL • <b>Direct IV:</b> 500 mg + SWI 8–10 mL • <b>Infusion:</b> เจือจาง &gt; 100 mL',
+    avoidHtml: '<b>D5W ทำให้สารละลายเป็นกรด เสี่ยง phlebitis</b>',
+    admin: { route: 'IM / Direct IV / IV infusion', duration: 'Direct IV &gt; 3–4 นาที • Infusion 1–3 ชม.', maxConc: '' },
+    cautions: [
+      'หลังละลายคงตัว 24 ชม. ที่ห้อง / 48 ชม. ในตู้เย็น',
+      'หลังเจือจางคงตัว 12 ชม. ที่ห้อง'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [['ทุกราย', 'โดยทั่วไป <b>ไม่ต้องปรับ</b>']],
+      disclaimer: ''
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 13) Colistin
+  {
+    id: 'colistin-150mg',
+    name: 'Colistin',
+    strength: '150 mg',
+    routeBadge: 'IM / Direct IV / IV infusion',
+    diluents: ['D5W','D5S','NSS','SWI','RINGER'],
+    prepHtml: '<b>Direct IV:</b> 1 vial + SWI 2 mL (อย่าให้เกิดฟอง) → เจือจางต่อก่อนให้ • <b>Infusion:</b> ใช้สารละลายที่เข้ากันได้',
+    avoidHtml: '',
+    admin: { route: 'Direct IV / IV infusion', duration: 'Direct IV &gt; 3–10 นาที • Infusion &gt; 30–40 นาที', maxConc: '' },
+    cautions: [
+      'หลังละลายคงตัว 7 วัน ที่ห้อง/ตู้เย็น',
+      'หลังเจือจางคงตัว 24 ชม. ที่ห้อง',
+      'ให้เร็วเกินไปเสี่ยง respiratory arrest'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [['ทุกราย', 'ควรปรับตามสูตรสถาบัน (หน่วย IU/Colistin base activity แตกต่าง)']],
+      disclaimer: '**คำเตือน:** การคำนวณโดส colistin มีหลายหน่วย ควรใช้โปรโตคอลสถาบัน'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 14) Enoxaparin (SC)
+  {
+    id: 'enoxaparin-60-0-6',
+    name: 'Enoxaparin',
+    strength: '60 mg/0.6 mL',
+    routeBadge: 'SC',
+    diluents: ['ไม่ต้องเจือจาง'],
+    prepHtml: 'พร้อมฉีด SC',
+    avoidHtml: 'ห้าม IM',
+    admin: { route: 'SC', duration: 'ฉีดทันที', maxConc: '' },
+    cautions: ['ห้าม IM'],
+    renalDose: {
+      title: 'การปรับตามไต (ตัวอย่างทั่วไป)',
+      headers: ['CrCl', 'แนวทาง (ขึ้นกับข้อบ่งใช้)'],
+      adjustments: [
+        ['≥ 30', 'ให้ตามข้อบ่งใช้ (เช่น 1 mg/kg q12h)'],
+        ['< 30', 'พิจารณา 1 mg/kg q24h (therapeutic) หรือปรับตาม indication']
+      ],
+      disclaimer: '**หมายเหตุ:** แตกต่างตามข้อบ่งใช้/เป้าหมาย anti‑Xa'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 15) Ertapenem
+  {
+    id: 'ertapenem-1g',
+    name: 'Ertapenem',
+    strength: '1 g',
+    routeBadge: 'IM / IV infusion',
+    diluents: ['NSS','SWI'],
+    prepHtml: '<b>IM:</b> 1 g + 3.2 mL ของ 1% lidocaine • <b>Infusion:</b> 1 g + SWI/NSS 10 mL แล้วเจือจาง ≥ 50 mL',
+    avoidHtml: '',
+    admin: { route: 'IM / IV infusion', duration: 'Infusion &gt; 30 นาที', maxConc: '' },
+    cautions: [
+      'ละลายด้วย lidocaine ใช้ภายใน 1 ชม.',
+      'หลังเจือจางคงตัว 6 ชม. ที่ห้อง / 24 ชม. ในตู้เย็น'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl (mL/min)', 'ขนาด/ความถี่'],
+      adjustments: [
+        ['≥ 30', '1 g IV q24h'],
+        ['< 30', '500 mg IV q24h'],
+        ['Hemodialysis', '500 mg IV <b>หลังฟอกไต</b>']
+      ],
+      disclaimer: ''
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 16) Fosfomycin (IV)
+  {
+    id: 'fosfomycin-2g',
+    name: 'Fosfomycin',
+    strength: '2 g',
+    routeBadge: 'Direct IV / IV infusion',
+    diluents: ['NSS','D5W','SWI'],
+    prepHtml: '<b>Direct IV:</b> 2 g + SWI/NSS/D5W 20 mL • <b>Infusion:</b> เจือจาง 100–500 mL',
+    avoidHtml: 'ให้เร็วเกินไปอาจเกิดพิษ',
+    admin: { route: 'Direct IV / IV infusion', duration: 'Direct IV &gt; 5 นาที • Infusion &gt; 60–120 นาที', maxConc: '' },
+    cautions: [
+      'หลังเตรียมใช้ได้ 24 ชม. ที่ห้อง; 5 วันในตู้เย็น (บางแหล่งระบุ 7 วัน)'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต (ตัวอย่างทั่วไป)',
+      headers: ['CrCl', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 50', 'ให้ตามข้อบ่งใช้'],
+        ['10–50', 'ยืดช่วงให้ห่างขึ้น (เช่น q12–24h ตามข้อบ่งใช้)'],
+        ['< 10', 'พิจารณาลดขนาด/ยืดช่วงมากขึ้น'],
+        ['Hemodialysis', 'พิจารณาเสริมหลังฟอก']
+      ],
+      disclaimer: '**หมายเหตุ:** โปรโตคอล fosfomycin IV ต่างกันระหว่างสถาบัน'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 17) Gentamicin
+  {
+    id: 'gentamicin-80mg-2ml',
+    name: 'Gentamicin',
+    strength: '80 mg/2 mL',
+    routeBadge: 'IM / IV infusion',
+    diluents: ['NSS','D5W'],
+    prepHtml: '<b>IM:</b> ไม่ต้องเจือจาง • <b>Infusion:</b> 1 amp เจือจาง ≥ 50–200 mL',
+    avoidHtml: '',
+    admin: { route: 'IV infusion', duration: '1.5–2 ชม.', maxConc: '' },
+    cautions: [
+      'หลังเจือจางควรใช้ภายใน 24 ชม. ที่ห้อง',
+      'ห้ามแช่ตู้เย็น'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต (ผู้ใหญ่)',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 60', '5–7 mg/kg/day (extended‑interval) หรือแบ่ง q8–12h'],
+        ['40–60', 'ให้ทุก 24 ชม.'],
+        ['20–39', 'ให้ทุก 48 ชม.'],
+        ['< 20', 'ให้ทุก 72 ชม.'],
+        ['Hemodialysis', 'ให้ loading แล้วเสริมหลังฟอกไต']
+      ],
+      disclaimer: '**สำคัญ:** monitor ระดับยา/การได้ยิน/การทำงานของไต'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 18) Meropenem
+  {
+    id: 'meropenem-500mg-1g',
+    name: 'Meropenem',
+    strength: '500 mg, 1 g',
+    routeBadge: 'Direct IV / IV infusion',
+    diluents: ['NSS','D5W','D10W','D5S'],
+    prepHtml: '<b>Direct IV:</b> 500 mg/1 g + SWFI 10/20 mL • <b>Infusion:</b> เจือจางต่อ 50–200 mL',
+    avoidHtml: '',
+    admin: { route: 'Direct IV / IV infusion', duration: 'Direct IV 3–5 นาที • IV infusion 3 ชม.', maxConc: '' },
+    cautions: [
+      'คงตัวที่ห้อง: NSS 8 ชม., D5W 3 ชม.; ในตู้เย็น: NSS 48 ชม., D5W 14 ชม.'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต (ตัวอย่างสำหรับ 1 g target)',
+      headers: ['CrCl (mL/min)', 'ความถี่'],
+      adjustments: [
+        ['> 50', 'q8h'],
+        ['26–50', 'q12h'],
+        ['10–25', 'q24h'],
+        ['< 10', 'q24h (พิจารณาลดขนาด)'],
+        ['Hemodialysis', 'เสริมหลังฟอกไตตามข้อบ่งใช้']
+      ],
+      disclaimer: '**หมายเหตุ:** ปรับตาม MIC/จุดติดเชื้อ/PK‑PD ของ β‑lactam'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 19) Metronidazole
+  {
+    id: 'metronidazole-500-100',
+    name: 'Metronidazole',
+    strength: '500 mg/100 mL',
+    routeBadge: 'IV infusion',
+    diluents: ['NSS','D5W','RINGER'],
+    prepHtml: 'ไม่ต้องเจือจาง',
+    avoidHtml: '',
+    admin: { route: 'IV infusion', duration: '&gt; 1 ชั่วโมง', maxConc: '' },
+    cautions: [],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต',
+      headers: ['CrCl', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['≥ 10', 'โดยทั่วไปไม่ต้องปรับ'],
+        ['< 10 หรือ ESRD', 'โดยมากไม่ต้องปรับ; พิจารณาเสริมเล็กน้อยหลัง HD/PD หากให้ก่อนหน้าไม่นาน']
+      ],
+      disclaimer: ''
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 20) Penicillin G sodium (PGS)
+  {
+    id: 'penicillin-g-5mU',
+    name: 'Penicillin G sodium (PGS)',
+    strength: '5,000,000 units',
+    routeBadge: 'IM / Intermittent IV / Continuous IV',
+    diluents: ['NSS','D5W','SWI'],
+    prepHtml: '5,000,000 IU + SWFI/D5W/NSS 3 mL (1,000,000 IU/mL) หรือ + 8 mL (500,000 IU/mL)<br><b>Intermittent IV:</b> &lt;2 mU: เจือจาง 50 mL; 2.1–6 mU: เจือจาง 100 mL<br><b>Continuous:</b> &gt; 10,000,000 IU เจือจาง D5W/NSS 1–2 L',
+    avoidHtml: 'ให้เร็ว/มากเกิน → เสี่ยง electrolyte imbalance/ชัก',
+    admin: { route: 'IM / Intermittent / Continuous', duration: 'Intermittent 15–30 นาที (บางตำรา 1–2 ชม.)', maxConc: 'IM ≤ 100,000 units/mL' },
+    cautions: [
+      'หลังเจือจางใช้ภายใน 24 ชม. ที่ห้อง หรือ 14 วันในตู้เย็น',
+      'เปลี่ยนตำแหน่งฉีดทุก 48 ชม.',
+      'IV push เพิ่มความเสี่ยง neurotoxicity'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต (แนวทางทั่วไป)',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['10–50', 'ลดขนาด 25–50% หรือยืดช่วงให้ห่างขึ้น'],
+        ['< 10', 'ลดขนาด 50–70% หรือให้ห่างมากขึ้น'],
+        ['Hemodialysis', 'ให้เสริมหลังฟอกไต']
+      ],
+      disclaimer: '**หมายเหตุ:** ปรับตามข้อบ่งใช้จริง'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 21) Streptomycin
+  {
+    id: 'streptomycin-1g',
+    name: 'Streptomycin',
+    strength: '1 g',
+    routeBadge: 'IM',
+    diluents: ['NSS','D5W'],
+    prepHtml: 'IM: 1 g + SWI 4.2/3.2/1.8 mL → 200/250/400 mg/mL ตามลำดับ',
+    avoidHtml: 'ไม่แนะนำให้ IV',
+    admin: { route: 'Deep IM', duration: '', maxConc: '' },
+    cautions: [
+      'หลังละลายคงตัว 1 สัปดาห์ที่ห้อง; 2–4 สัปดาห์ในตู้เย็น',
+      'ติดตามการได้ยิน, BUN, Cr'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต (ผู้ใหญ่)',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 60', '15 mg/kg/week แบ่งโดส หรือ dosing ตามระดับยา'],
+        ['40–60', 'ขยายช่วงให้ห่างขึ้น (เช่น q48–72h)'],
+        ['< 40', 'ให้ห่างมากขึ้นหรือปรับขนาดตามระดับยา'],
+        ['Hemodialysis', 'ให้หลังฟอกไตตามระดับยา']
+      ],
+      disclaimer: '**สำคัญ:** ติดตามระดับยาและการได้ยิน'
+    },
+    updated: '19 ส.ค. 2568'
+  },
+
+  // 22) Vancomycin
+  {
+    id: 'vancomycin-500mg',
+    name: 'Vancomycin',
+    strength: '500 mg (และ 1 g)',
+    routeBadge: 'Intermittent IV / Continuous IV infusion',
+    diluents: ['NSS','D5W'],
+    prepHtml: '<b>Intermittent IV:</b> 500 mg + SWI 10 mL แล้วปรับเป็น 100 mL ด้วย NSS/D5W; 1 g: SWI 20 mL แล้วปรับเป็น 200 mL (≤ 5 mg/mL)<br><b>Continuous IV:</b> 1–2 g ในสารละลายเพียงพอให้ครบ 24 ชม.',
+    avoidHtml: 'หลีกเลี่ยง direct IV; ไม่ควร IM',
+    admin: { route: 'Intermittent / Continuous infusion', duration: 'Intermittent &gt; 60 นาที (ถ้า &gt; 1 g: &gt; 90 นาที; max 10 mg/min) • Continuous 24 ชม.', maxConc: '≤ 5 mg/mL' },
+    cautions: [
+      'หลังละลายด้วย NSS/D5W เก็บได้ 14 วันในตู้เย็น'
+    ],
+    renalDose: {
+      title: 'การปรับขนาดยาตามไต (ผู้ใหญ่, ตัวอย่างเบื้องต้น)',
+      headers: ['CrCl (mL/min)', 'การปรับขนาดยา/ความถี่'],
+      adjustments: [
+        ['> 60', '15 mg/kg IV q12h'],
+        ['40–60', '15 mg/kg IV q24h'],
+        ['20–39', '15 mg/kg IV q48h'],
+        ['< 20', '15 mg/kg IV q72h'],
+        ['Hemodialysis', '15 mg/kg IV <b>หลังฟอกไต</b> (ปรับตามระดับยา)']
+      ],
+      disclaimer: '**สำคัญ:** ปรับตามระดับยา (เป้าหมาย trough/ AUC‑guided) และแนวทางสถาบัน'
+    },
+    updated: '19 ส.ค. 2568'
+  }
+];
+
+
 
   // ===== ส่วนของการทำงาน =====
   const sel = document.getElementById('drugSel');
