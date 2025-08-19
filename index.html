@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>IV Drug Quick Guide (เลือกก่อน + โหมดการ์ดเดี่ยว)</title>
+<title>IV Drug Quick Guide (เลือกก่อน + ปุ่ม QR ในการ์ด)</title>
 <style>
   :root{--bg:#f7f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--accent:#3b82f6;--chip:#e5e7eb;--border:#e5e7eb;--warn:#f59e0b;--danger:#ef4444}
   *{box-sizing:border-box}
@@ -32,6 +32,10 @@
   .foot{margin-top:12px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+  .qr-wrap{display:none;align-items:center;gap:14px;margin-top:10px}
+  .qr-wrap.show{display:flex}
+  .qr-box{border:1px dashed var(--border);border-radius:12px;padding:8px;background:#fff}
+  .qr-info{font-size:13px;color:var(--muted)}
   .empty{color:var(--muted);text-align:center;margin:36px 0}
   .only-card header{display:none} /* โหมดการ์ดเดี่ยว: ซ่อนส่วนเลือก */
   @media print{ header,.actions{display:none} body{background:#fff} a{word-break:break-all} }
@@ -44,9 +48,7 @@
     <h1>IV Drug Quick Guide</h1>
     <div class="picker">
       <label for="drugSel" class="sr-only" style="position:absolute;left:-9999px">เลือกยา</label>
-      <select id="drugSel">
-        <option value="">— เลือกยาที่ต้องการ —</option>
-      </select>
+      <select id="drugSel"><option value="">— เลือกยาที่ต้องการ —</option></select>
       <button id="openBtn" type="button">เปิดการ์ด</button>
     </div>
     <div class="hint">สแกน QR จะเปิดเฉพาะการ์ดของยานั้นทันที</div>
@@ -60,7 +62,7 @@
 
 <script>
 (function(){
-  // ===== 1) ข้อมูลยา (เริ่มตัวอย่าง 1 รายการ ใส่เพิ่มได้เรื่อย ๆ) =====
+  // ===== 1) ข้อมูลยา (เพิ่มรายการอื่นได้ในอาร์เรย์นี้) =====
   const DRUGS = [
     {
       id: 'acyclovir',
@@ -77,10 +79,9 @@
       ],
       updated: '19 ส.ค. 2568'
     }
-    // เพิ่มยาต่อ ๆ ไปในรูปแบบเดียวกัน
   ];
 
-  // ===== 2) เติมรายการลง dropdown =====
+  // ===== 2) เติม dropdown =====
   const sel = document.getElementById('drugSel');
   for(const d of DRUGS){
     const opt = document.createElement('option');
@@ -96,6 +97,12 @@
     const u = new URL(window.location.href);
     u.hash = id;
     return u.toString();
+  }
+  // สร้าง QR ผ่าน Google Chart API เป็นไฟล์ภาพ PNG (เหมาะกับ GitHub Pages)
+  function makeQrSrc(url, size=200){
+    const base = 'https://chart.googleapis.com/chart';
+    const params = new URLSearchParams({ cht:'qr', chs:`${size}x${size}`, chld:'M|0', chl:url });
+    return `${base}?${params.toString()}`;
   }
 
   function renderCard(d){
@@ -132,8 +139,20 @@
       </div>
 
       <div class="actions">
+        <button class="btn" id="qrBtn" type="button">ดู/ซ่อน QR ของการ์ดนี้</button>
+        <a class="btn" id="qrDl" href="#" download="${d.id}-qr.png" style="display:none">ดาวน์โหลด QR</a>
         <button class="btn" id="printBtn" type="button">พิมพ์/บันทึกเป็น PDF</button>
         <a class="btn" href="${cardUrlFor(d.id)}" target="_blank" rel="noopener">ลิงก์ตรงของการ์ด</a>
+      </div>
+
+      <div class="qr-wrap" id="qrWrap">
+        <div class="qr-box">
+          <img id="qrImg" width="200" height="200" alt="QR code สำหรับเปิดการ์ด ${d.name}" />
+        </div>
+        <div class="qr-info">
+          สแกนเพื่อเปิดการ์ดนี้: <br>
+          <a id="qrLink" href="${cardUrlFor(d.id)}" target="_blank" rel="noopener">${cardUrlFor(d.id)}</a>
+        </div>
       </div>
 
       <p class="foot">
@@ -142,6 +161,23 @@
       </p>
     `;
     mount.appendChild(art);
+
+    // bind ปุ่ม QR/Print
+    const qrBtn = document.getElementById('qrBtn');
+    const qrWrap = document.getElementById('qrWrap');
+    const qrImg  = document.getElementById('qrImg');
+    const qrDl   = document.getElementById('qrDl');
+
+    qrBtn.addEventListener('click', ()=>{
+      qrWrap.classList.toggle('show');
+      if(qrWrap.classList.contains('show') && !qrImg.src){
+        const url = cardUrlFor(d.id);
+        qrImg.src = makeQrSrc(url, 200);
+        qrDl.href = qrImg.src;
+        qrDl.style.display = 'inline-block';
+      }
+    });
+
     document.getElementById('printBtn').addEventListener('click', ()=>window.print());
     placeholder.style.display = 'none';
   }
@@ -152,12 +188,12 @@
   document.getElementById('openBtn').addEventListener('click', ()=>{
     const id = sel.value;
     if(!id) return;
-    history.replaceState(null,'', '#'+id); // อัปเดต URL ให้แชร์/ทำ QR ต่อได้
+    history.replaceState(null,'', '#'+id); // อัปเดต URL เพื่อใช้ทำ QR/แชร์
     const d = findDrug(id);
     if(d) renderCard(d);
   });
 
-  // ===== 4) โหมดการ์ดเดี่ยวเมื่อตรวจเจอ hash (ใช้กับ QR) =====
+  // ===== 4) โหมดการ์ดเดี่ยวจาก hash (สำหรับ QR) =====
   function bootFromHash(){
     const id = (location.hash||'').replace('#','');
     if(!id) return false;
@@ -170,11 +206,10 @@
 
   // เริ่มทำงาน
   if(!bootFromHash()){
-    // ถ้าไม่มี hash ให้รอการเลือก
     placeholder.style.display = 'block';
   }
 
-  // ถ้ามีการเปลี่ยน hash (เช่น เปิดลิงก์ใหม่) ให้สลับการ์ด
+  // เปลี่ยน hash → สลับการ์ด
   window.addEventListener('hashchange', ()=>{
     mount.innerHTML = '';
     document.body.classList.remove('only-card');
