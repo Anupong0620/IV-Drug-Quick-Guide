@@ -1,221 +1,187 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>IV Drug Quick Guide + QR</title>
-  <style>
-    :root{
-      --bg:#f7f7fb;--card:#ffffff;--text:#1f2937;--muted:#6b7280;--accent:#3b82f6;
-      --chip:#e5e7eb;--border:#e5e7eb;--warn:#f59e0b;--danger:#ef4444;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,"Noto Sans Thai",Tahoma,sans-serif}
-    .wrap{max-width:980px;margin:28px auto;padding:0 16px}
-    header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
-    h1{font-size:22px;margin:0}
-    .search{flex:1;min-width:260px}
-    .search input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.05);padding:20px;margin-bottom:18px}
-    .title{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 6px}
-    .title h2{font-size:18px;line-height:1.25;margin:0}
-    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--accent);color:#fff}
-    .sub{color:var(--muted);margin:0 0 12px}
-    .grid{display:grid;gap:14px}
-    @media (min-width:720px){ .grid{grid-template-columns:1.2fr .8fr} }
-    .section{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fff}
-    .section h3{font-size:15px;margin:0 0 8px}
-    .chips{display:flex;flex-wrap:wrap;gap:8px}
-    .chip{background:var(--chip);border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:13px}
-    .kv{margin:0;display:grid;grid-template-columns:160px 1fr;gap:6px 10px}
-    .kv dt{color:var(--muted)} .kv dd{margin:0}
-    .note{border-left:4px solid var(--warn);background:#fff7ed;padding:10px 12px;border-radius:8px}
-    .warn{color:var(--danger);font-weight:600}
-    .foot{margin-top:12px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
-    .btn:hover{border-color:#cbd5e1}
-    .qr-wrap{display:none;align-items:center;gap:14px;margin-top:10px}
-    .qr-wrap.show{display:flex}
-    .qr-box{border:1px dashed var(--border);border-radius:12px;padding:8px;background:#fff}
-    .qr-info{font-size:13px;color:var(--muted)}
-    .pill{display:inline-block;padding:.1rem .5rem;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;border:1px solid #e0e7ff}
-    .empty{color:var(--muted);text-align:center;margin:24px 0}
-    @media print{ header,.actions{display:none} body{background:#fff} a{word-break:break-all} }
-    footer{color:var(--muted);font-size:12px;margin:16px 0 24px;text-align:center}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>IV Drug Quick Guide (เลือกก่อน + โหมดการ์ดเดี่ยว)</title>
+<style>
+  :root{--bg:#f7f7fb;--card:#fff;--text:#1f2937;--muted:#6b7280;--accent:#3b82f6;--chip:#e5e7eb;--border:#e5e7eb;--warn:#f59e0b;--danger:#ef4444}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,"Noto Sans Thai",Tahoma,sans-serif}
+  .wrap{max-width:980px;margin:28px auto;padding:0 16px}
+  header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+  h1{font-size:22px;margin:0}
+  .picker{display:flex;gap:8px;align-items:center}
+  select,button{padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff}
+  .hint{color:var(--muted);font-size:14px;margin:6px 0 0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.05);padding:20px;margin-top:14px}
+  .title{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 6px}
+  .title h2{font-size:18px;margin:0}
+  .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:var(--accent);color:#fff}
+  .sub{color:var(--muted);margin:0 0 12px}
+  .grid{display:grid;gap:14px}
+  @media (min-width:720px){.grid{grid-template-columns:1.2fr .8fr}}
+  .section{border:1px solid var(--border);border-radius:12px;padding:14px;background:#fff}
+  .section h3{font-size:15px;margin:0 0 8px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:var(--chip);border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:13px}
+  .kv{margin:0;display:grid;grid-template-columns:160px 1fr;gap:6px 10px}
+  .kv dt{color:var(--muted)} .kv dd{margin:0}
+  .note{border-left:4px solid var(--warn);background:#fff7ed;padding:10px 12px;border-radius:8px}
+  .warn{color:var(--danger);font-weight:600}
+  .foot{margin-top:12px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+  .empty{color:var(--muted);text-align:center;margin:36px 0}
+  .only-card header{display:none} /* โหมดการ์ดเดี่ยว: ซ่อนส่วนเลือก */
+  @media print{ header,.actions{display:none} body{background:#fff} a{word-break:break-all} }
+  footer{color:var(--muted);font-size:12px;margin:16px 0 24px;text-align:center}
+</style>
 </head>
 <body>
-  <main class="wrap">
-    <header>
-      <h1>IV Drug Quick Guide</h1>
-      <div class="search">
-        <input id="q" placeholder="ค้นหาชื่อยา / ตัวทำละลาย / คีย์เวิร์ด…" />
-      </div>
-    </header>
+<main class="wrap">
+  <header>
+    <h1>IV Drug Quick Guide</h1>
+    <div class="picker">
+      <label for="drugSel" class="sr-only" style="position:absolute;left:-9999px">เลือกยา</label>
+      <select id="drugSel">
+        <option value="">— เลือกยาที่ต้องการ —</option>
+      </select>
+      <button id="openBtn" type="button">เปิดการ์ด</button>
+    </div>
+    <div class="hint">สแกน QR จะเปิดเฉพาะการ์ดของยานั้นทันที</div>
+  </header>
 
-    <div id="list" role="region" aria-live="polite"></div>
-    <footer>โฮสต์ด้วย GitHub Pages • อัปเดตล่าสุด: 19 ส.ค. 2568</footer>
-  </main>
+  <div id="mount"></div>
+  <div id="placeholder" class="empty">เลือกยาจากด้านบนเพื่อแสดงการ์ด</div>
 
-  <script>
-  window.addEventListener('DOMContentLoaded', function(){
-    try{
-      // ===== 1) ข้อมูลตัวอย่าง =====
-      const DRUGS = [
-        {
-          id: 'acyclovir',
-          name: 'Acyclovir',
-          strength: '250 mg/10 mL',
-          routeBadge: 'IV infusion',
-          diluents: ['D5W','D5S/2','D5S/4','D5S','NSS','RINGER'],
-          prepHtml: 'เจือจางด้วยสารละลายที่ใช้ได้ข้างต้น โดย<strong>ความเข้มข้นของยาไม่ควรเกิน 5 mg/mL</strong> เพื่อป้องกันการเกิด phlebitis',
-          avoidHtml: 'หลีกเลี่ยงการให้แบบดันเข้าหลอดเลือด (IV push/bolus)',
-          admin: { route: 'IV infusion', duration: '&gt; 60 นาที', maxConc: 'ไม่เกิน 5 mg/mL' },
-          cautions: [
-            '<span class="warn">หลังเปิดใช้</span> ยาส่วนที่เหลือให้ทิ้ง',
-            '<span class="warn">หลังเจือจาง</span> ยามีความคงตัว <strong>24 ชั่วโมง</strong>'
-          ],
-          updated: '19 ส.ค. 2568'
-        }
-      ];
+  <footer>โฮสต์ด้วย GitHub Pages • อัปเดตล่าสุด: 19 ส.ค. 2568</footer>
+</main>
 
-      const list = document.getElementById('list');
-
-      function cardUrlFor(id){
-        const u = new URL(window.location.href);
-        u.hash = id;
-        return u.toString();
-      }
-      function makeQrSrc(url, size=200){
-        const base = 'https://chart.googleapis.com/chart';
-        const params = new URLSearchParams({ cht:'qr', chs:`${size}x${size}`, chld:'M|0', chl:url });
-        return `${base}?${params.toString()}`;
-      }
-
-      function render(drugs){
-        list.innerHTML = '';
-        if(!drugs || drugs.length === 0){
-          list.innerHTML = '<div class="empty">ไม่พบรายการที่ตรงกับคำค้น</div>';
-          return;
-        }
-        for(const d of drugs){
-          const art = document.createElement('article');
-          art.className = 'card';
-          art.id = d.id;
-          art.innerHTML = `
-            <div class="title">
-              <h2>${d.name} ${d.strength}</h2>
-              <span class="badge">${d.routeBadge || 'IV'}</span>
-            </div>
-            <p class="sub">ข้อมูลสรุปการเตรียมและการให้ยา (สำหรับบุคลากรทางการแพทย์)</p>
-
-            <div class="grid">
-              <section class="section">
-                <h3>ตัวทำละลายที่ใช้ได้</h3>
-                <div class="chips">${(d.diluents||[]).map(x=>`<span class="chip">${x}</span>`).join('')}</div>
-                <h3>วิธีเตรียม</h3>
-                <p>${d.prepHtml||''}</p>
-                ${d.avoidHtml ? `<div class="note"><strong>หมายเหตุ:</strong> ${d.avoidHtml}</div>`:''}
-              </section>
-
-              <section class="section">
-                <h3>การให้ยา</h3>
-                <dl class="kv">
-                  <dt>เส้นทางให้ยา</dt><dd>${d.admin && d.admin.route ? d.admin.route : ''}</dd>
-                  <dt>ระยะเวลาให้</dt><dd>${d.admin && d.admin.duration ? d.admin.duration : ''}</dd>
-                  <dt>ความเข้มข้นสูงสุด</dt><dd>${d.admin && d.admin.maxConc ? d.admin.maxConc : ''}</dd>
-                </dl>
-                <h3>ข้อควรระวัง / อื่น ๆ</h3>
-                <ul>${(d.cautions||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
-              </section>
-            </div>
-
-            <div class="actions">
-              <button class="btn btn-qr" data-id="${d.id}">แสดง/ซ่อน QR</button>
-              <button class="btn btn-print">พิมพ์/บันทึกเป็น PDF</button>
-              <a class="btn btn-dl" href="#" download="${d.id}-qr.png" style="display:none">ดาวน์โหลด QR</a>
-              <a class="btn" href="${cardUrlFor(d.id)}" target="_blank" rel="noopener">เปิดลิงก์การ์ด</a>
-            </div>
-
-            <div class="qr-wrap">
-              <div class="qr-box"><img width="180" height="180" alt="QR code สำหรับเปิดการ์ด ${d.name}" /></div>
-              <div class="qr-info">
-                สแกนเพื่อเปิด: <br>
-                <a href="${cardUrlFor(d.id)}" target="_blank" rel="noopener">${cardUrlFor(d.id)}</a>
-              </div>
-            </div>
-
-            <p class="foot">
-              <span>เอกสารฉบับย่อสำหรับใช้งานภายใน</span>
-              <span>อัปเดตล่าสุด: ${d.updated||''}</span>
-            </p>
-          `;
-          list.appendChild(art);
-        }
-
-        // bind events
-        list.querySelectorAll('.card').forEach(card=>{
-          const btnQR   = card.querySelector('.btn-qr');
-          const btnPrn  = card.querySelector('.btn-print');
-          const btnDL   = card.querySelector('.btn-dl');
-          const wrap    = card.querySelector('.qr-wrap');
-          const img     = card.querySelector('img');
-          const id      = btnQR ? btnQR.getAttribute('data-id') : '';
-
-          if(btnQR){
-            btnQR.addEventListener('click', ()=>{
-              wrap.classList.toggle('show');
-              if(wrap.classList.contains('show') && !img.src){
-                const url = cardUrlFor(id);
-                img.src = makeQrSrc(url, 200);
-                btnDL.style.display = 'inline-block';
-                btnDL.href = img.src;
-              }
-            });
-          }
-          if(btnPrn){ btnPrn.addEventListener('click', ()=>window.print()); }
-        });
-      }
-
-      // --- ค้นหา ---
-      const q = document.getElementById('q');
-      function applySearch(){
-        const kw = (q.value || '').trim().toLowerCase();
-        if(!kw){ render(DRUGS); return; }
-        const filtered = DRUGS.filter(d=>{
-          const blob = [
-            d.name, d.strength, d.routeBadge,
-            ...(d.diluents||[]), d.prepHtml, d.avoidHtml,
-            d.admin && d.admin.route, d.admin && d.admin.duration, d.admin && d.admin.maxConc,
-            ...(d.cautions||[])
-          ].join(' ').toLowerCase();
-          return blob.includes(kw);
-        });
-        render(filtered);
-      }
-      q.addEventListener('input', applySearch);
-
-      // --- เริ่มต้น: ถ้ามีพารามิเตอร์ ?q= หรือมีค่าในช่องค้นหา ให้กรองทันที ---
-      const urlParams = new URLSearchParams(window.location.search);
-      const qParam = urlParams.get('q');
-      if(qParam){ q.value = qParam; }
-      render(DRUGS);        // แสดงทั้งหมดก่อน
-      applySearch();        // แล้วกรองตามค่าที่มี (ถ้ามี)
-
-      // --- ถ้ามี hash ให้เลื่อนไป ---
-      if(location.hash){
-        const el = document.querySelector(location.hash);
-        if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); }
-      }
-    }catch(err){
-      console.error(err);
-      const list = document.getElementById('list');
-      if(list){
-        list.innerHTML = '<div class="empty">เกิดข้อผิดพลาดในการโหลดหน้า ลองรีเฟรชอีกครั้ง</div>';
-      }
+<script>
+(function(){
+  // ===== 1) ข้อมูลยา (เริ่มตัวอย่าง 1 รายการ ใส่เพิ่มได้เรื่อย ๆ) =====
+  const DRUGS = [
+    {
+      id: 'acyclovir',
+      name: 'Acyclovir',
+      strength: '250 mg/10 mL',
+      routeBadge: 'IV infusion',
+      diluents: ['D5W','D5S/2','D5S/4','D5S','NSS','RINGER'],
+      prepHtml: 'เจือจางด้วยสารละลายที่ใช้ได้ข้างต้น โดย<strong>ความเข้มข้นของยาไม่ควรเกิน 5 mg/mL</strong> เพื่อป้องกันการเกิด phlebitis',
+      avoidHtml: 'หลีกเลี่ยงการให้แบบดันเข้าหลอดเลือด (IV push/bolus)',
+      admin: { route: 'IV infusion', duration: '&gt; 60 นาที', maxConc: 'ไม่เกิน 5 mg/mL' },
+      cautions: [
+        '<span class="warn">หลังเปิดใช้</span> ยาส่วนที่เหลือให้ทิ้ง',
+        '<span class="warn">หลังเจือจาง</span> ยามีความคงตัว <strong>24 ชั่วโมง</strong>'
+      ],
+      updated: '19 ส.ค. 2568'
     }
+    // เพิ่มยาต่อ ๆ ไปในรูปแบบเดียวกัน
+  ];
+
+  // ===== 2) เติมรายการลง dropdown =====
+  const sel = document.getElementById('drugSel');
+  for(const d of DRUGS){
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = `${d.name} ${d.strength}`;
+    sel.appendChild(opt);
+  }
+
+  const mount = document.getElementById('mount');
+  const placeholder = document.getElementById('placeholder');
+
+  function cardUrlFor(id){
+    const u = new URL(window.location.href);
+    u.hash = id;
+    return u.toString();
+  }
+
+  function renderCard(d){
+    mount.innerHTML = '';
+    const art = document.createElement('article');
+    art.className = 'card';
+    art.id = d.id;
+    art.innerHTML = `
+      <div class="title">
+        <h2>${d.name} ${d.strength}</h2>
+        <span class="badge">${d.routeBadge || 'IV'}</span>
+      </div>
+      <p class="sub">ข้อมูลสรุปการเตรียมและการให้ยา (สำหรับบุคลากรทางการแพทย์)</p>
+
+      <div class="grid">
+        <section class="section">
+          <h3>ตัวทำละลายที่ใช้ได้</h3>
+          <div class="chips">${(d.diluents||[]).map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+          <h3>วิธีเตรียม</h3>
+          <p>${d.prepHtml||''}</p>
+          ${d.avoidHtml ? `<div class="note"><strong>หมายเหตุ:</strong> ${d.avoidHtml}</div>`:''}
+        </section>
+
+        <section class="section">
+          <h3>การให้ยา</h3>
+          <dl class="kv">
+            <dt>เส้นทางให้ยา</dt><dd>${d.admin?.route||''}</dd>
+            <dt>ระยะเวลาให้</dt><dd>${d.admin?.duration||''}</dd>
+            <dt>ความเข้มข้นสูงสุด</dt><dd>${d.admin?.maxConc||''}</dd>
+          </dl>
+          <h3>ข้อควรระวัง / อื่น ๆ</h3>
+          <ul>${(d.cautions||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
+        </section>
+      </div>
+
+      <div class="actions">
+        <button class="btn" id="printBtn" type="button">พิมพ์/บันทึกเป็น PDF</button>
+        <a class="btn" href="${cardUrlFor(d.id)}" target="_blank" rel="noopener">ลิงก์ตรงของการ์ด</a>
+      </div>
+
+      <p class="foot">
+        <span>เอกสารฉบับย่อสำหรับใช้งานภายใน</span>
+        <span>อัปเดตล่าสุด: ${d.updated||''}</span>
+      </p>
+    `;
+    mount.appendChild(art);
+    document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+    placeholder.style.display = 'none';
+  }
+
+  function findDrug(id){ return DRUGS.find(x=>x.id === id); }
+
+  // ===== 3) ปุ่ม "เปิดการ์ด" =====
+  document.getElementById('openBtn').addEventListener('click', ()=>{
+    const id = sel.value;
+    if(!id) return;
+    history.replaceState(null,'', '#'+id); // อัปเดต URL ให้แชร์/ทำ QR ต่อได้
+    const d = findDrug(id);
+    if(d) renderCard(d);
   });
-  </script>
+
+  // ===== 4) โหมดการ์ดเดี่ยวเมื่อตรวจเจอ hash (ใช้กับ QR) =====
+  function bootFromHash(){
+    const id = (location.hash||'').replace('#','');
+    if(!id) return false;
+    const d = findDrug(id);
+    if(!d) return false;
+    document.body.classList.add('only-card'); // ซ่อน header
+    renderCard(d);
+    return true;
+  }
+
+  // เริ่มทำงาน
+  if(!bootFromHash()){
+    // ถ้าไม่มี hash ให้รอการเลือก
+    placeholder.style.display = 'block';
+  }
+
+  // ถ้ามีการเปลี่ยน hash (เช่น เปิดลิงก์ใหม่) ให้สลับการ์ด
+  window.addEventListener('hashchange', ()=>{
+    mount.innerHTML = '';
+    document.body.classList.remove('only-card');
+    placeholder.style.display = 'block';
+    bootFromHash();
+  });
+})();
+</script>
 </body>
 </html>
