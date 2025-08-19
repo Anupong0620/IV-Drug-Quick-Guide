@@ -40,9 +40,14 @@
       .qr-container .qr-info { font-size: 13px; color: var(--muted); }
       .qr-container a { color: var(--accent); word-break: break-all; }
       .empty{color:var(--muted);text-align:center;margin:36px 0}
-      .only-card header{display:none} /* โหมดการ์ดเดี่ยว: ซ่อนส่วนเลือก */
+      .only-card header{display:none}
       @media print{ header,.actions, .qr-container{display:none} body{background:#fff} a{word-break:break-all} }
       footer{color:var(--muted);font-size:12px;margin:16px 0 24px;text-align:center}
+      /* ตาราง renal dose */
+      .dose-adjustment table{width:100%;border-collapse:collapse;margin-top:8px}
+      .dose-adjustment th,.dose-adjustment td{border:1px solid var(--border);padding:8px;text-align:left;font-size:14px}
+      .dose-adjustment thead{background:#f3f4f6}
+      .dose-adjustment .disclaimer{color:var(--muted);font-size:12px;margin-top:8px}
     </style>
 </head>
 <body>
@@ -65,7 +70,7 @@
 
 <script>
 (function(){
-  // ===== 1) ข้อมูลยา (เพิ่ม/แก้ไขยาตรงนี้) =====
+  // ===== 1) ข้อมูลยา =====
   const DRUGS = [
     {
       id: 'acyclovir',
@@ -81,9 +86,9 @@
         headers: ['Creatinine Clearance (CrCl)', 'การปรับขนาดยา / ความถี่'],
         adjustments: [
             ['> 50 mL/min', 'ให้ขนาดยาปกติ ทุก 8 ชั่วโมง'],
-            ['25-50 mL/min', 'ให้ขนาดยาปกติ ทุก 12 ชั่วโมง'],
-            ['10-25 mL/min', 'ให้ขนาดยาปกติ ทุก 24 ชั่วโมง'],
-            ['&lt; 10 mL/min', 'ให้ขนาดยา <b>ครึ่งหนึ่ง (50%)</b> ของขนาดยาปกติ ทุก 24 ชั่วโมง'],
+            ['25–50 mL/min', 'ให้ขนาดยาปกติ ทุก 12 ชั่วโมง'],
+            ['10–25 mL/min', 'ให้ขนาดยาปกติ ทุก 24 ชั่วโมง'],
+            ['< 10 mL/min', 'ให้ขนาดยา <b>ครึ่งหนึ่ง (50%)</b> ของขนาดยาปกติ ทุก 24 ชั่วโมง'],
             ['ผู้ป่วยฟอกไต (Hemodialysis)', 'ให้ยาหลังฟอกไตเสร็จ (Post-HD)']
         ],
         disclaimer: '**ข้อควรระวัง:** ข้อมูลนี้เป็นเพียงแนวทางเบื้องต้น โปรดใช้คู่กับแนวทางของสถาบันและพิจารณาตามสภาวะของผู้ป่วยแต่ละราย'
@@ -94,50 +99,77 @@
       ],
       updated: '19 ส.ค. 2568'
     },
-    // {
-    //   id: 'paracetamol-iv',
-    //   name: 'Paracetamol',
-    //   strength: '1000 mg/100 mL',
-    //   ...ข้อมูลยาตัวต่อไป...
-    // }
+
+    /* ===== ตัวที่ 2: Amoxicillin + Clavulanic ===== */
+    {
+      id: 'amoxiclav-1g-200mg',
+      name: 'Amoxicillin + Clavulanic acid',
+      strength: '1 g + 200 mg (IV)',
+      routeBadge: 'IV direct / infusion',
+      diluents: ['NSS','Sterile water (SWI)','Ringer'],
+      prepHtml:
+        '<strong>IV direct:</strong> ละลายผงยาด้วยน้ำกลั่นสำหรับฉีด (SWI) 20 mL ก่อนให้ทางหลอดเลือดดำแบบช้า<br>' +
+        '<strong>IV infusion:</strong> หลังละลายแล้วเจือจางต่อด้วย NSS หรือ SWI ให้มีปริมาตรสุดท้าย 100 mL',
+      avoidHtml: '',
+      admin: {
+        route: 'IV direct หรือ IV infusion',
+        duration: 'IV direct: 3–4 นาที • IV infusion: 30–40 นาที',
+        maxConc: 'ตามมาตรฐานหลังละลาย/เจือจาง'
+      },
+      cautions: [
+        'หลังละลายควรใช้ภายใน <strong>20 นาที</strong>',
+        'หลังเจือจางด้วย NSS หรือ SWI ควรใช้ภายใน <strong>4 ชั่วโมง</strong> ที่อุณหภูมิห้อง หรือ <strong>8 ชั่วโมง</strong> หากเก็บในตู้เย็น',
+        'หากเจือจางด้วย Ringer ควรใช้ภายใน <strong>3 ชั่วโมง</strong> ที่อุณหภูมิห้อง'
+      ],
+      renalDose: {
+        title: 'การปรับขนาดยาตามการทำงานของไต (Renal Dose Adjustment)',
+        headers: ['Creatinine Clearance (CrCl)', 'การปรับขนาดยา / ความถี่ (ตัวอย่าง 1.2 g = 1 g + 0.2 g)'],
+        adjustments: [
+          ['> 30 mL/min', 'ให้ขนาดยาปกติ เช่น 1.2 g ทุก 8 ชั่วโมง'],
+          ['10–30 mL/min', '1.2 g ทุก 12 ชั่วโมง'],
+          ['< 10 mL/min', '1.2 g ทุก 24 ชั่วโมง'],
+          ['ผู้ป่วยฟอกไต (Hemodialysis)', '1.2 g ทุก 24 ชั่วโมง และพิจารณาให้ <b>1 dose เสริมหลังฟอกไต</b> (Post-HD)']
+        ],
+        disclaimer: '**หมายเหตุ:** เป็นแนวทางทั่วไปสำหรับผู้ใหญ่ โปรดปรับตามข้อบ่งใช้ ความรุนแรงของการติดเชื้อ และแนวทางของสถาบัน'
+      },
+      updated: '19 ส.ค. 2568'
+    }
   ];
 
-  // ===== ส่วนของการทำงาน (ไม่ต้องแก้ไข) =====
+  // ===== ส่วนของการทำงาน =====
   const sel = document.getElementById('drugSel');
   const mount = document.getElementById('mount');
   const placeholder = document.getElementById('placeholder');
   const lastUpdatedEl = document.getElementById('last-updated');
 
-  // สร้างตัวเลือกใน dropdown
+  // dropdown
   DRUGS.forEach(d => {
     const opt = document.createElement('option');
     opt.value = d.id;
     opt.textContent = `${d.name} ${d.strength}`;
     sel.appendChild(opt);
   });
+  // แสดงวันที่อัปเดตของรายการแรก (หรือจะเปลี่ยนเป็นล่าสุดก็ได้)
   lastUpdatedEl.textContent = DRUGS.length > 0 ? DRUGS[0].updated : 'N/A';
-  
-  // สร้าง URL ของการ์ดยาแต่ละตัว
+
   function cardUrlFor(id){
     const u = new URL(window.location.href);
     u.hash = id;
     return u.toString();
   }
 
-  // สร้าง QR Code จาก URL ที่กำหนด
   function createQrCodeDataUrl(url) {
     try {
-      const qr = qrcode(0, 'M'); // type 0 = auto, error correction 'M'
+      const qr = qrcode(0, 'M');
       qr.addData(url);
       qr.make();
-      return qr.createDataURL(5, 4); // (module size, margin)
+      return qr.createDataURL(5, 4);
     } catch (e) {
       console.error("QR Code generation failed:", e);
       return "";
     }
   }
-  
-  // ฟังก์ชันสร้างตารางปรับขนาดยาตามไต
+
   function createRenalTable(data) {
     if (!data || !data.adjustments) return '';
     const headers = data.headers.map(h => `<th>${h}</th>`).join('');
@@ -153,7 +185,6 @@
       </div>`;
   }
 
-  // ฟังก์ชันวาดการ์ดข้อมูลยา
   function renderCard(d){
     mount.innerHTML = '';
     const url = cardUrlFor(d.id);
@@ -201,7 +232,7 @@
           <a href="${url}" target="_blank" rel="noopener">${url}</a>
         </div>
       </div>
-      
+
       <div class="actions">
         <button class="btn" id="printBtn" type="button">พิมพ์ / บันทึกเป็น PDF</button>
         <a class="btn" href="${url}" target="_blank" rel="noopener">เปิดในหน้าต่างใหม่</a>
@@ -241,7 +272,7 @@
   if(!bootFromHash()){
     placeholder.style.display = 'block';
   }
-  
+
   window.addEventListener('hashchange', ()=>{
      if (!bootFromHash()) {
         document.body.classList.remove('only-card');
